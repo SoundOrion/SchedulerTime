@@ -4,6 +4,13 @@ using System.Linq;
 
 class Scheduler
 {
+    private static readonly HashSet<DateTime> holidays = new HashSet<DateTime>
+    {
+        new DateTime(DateTime.Now.Year, 1, 1),  // 元旦
+        new DateTime(DateTime.Now.Year, 12, 25) // クリスマス
+        // 会社の定休日を追加可能
+    };
+
     public static DateTime GetNextExecutionTime(string type, string property)
     {
         DateTime now = DateTime.Now;
@@ -95,7 +102,7 @@ class Scheduler
 
         if (isBusinessDay)
         {
-            while (IsWeekend(nextExecution))
+            while (IsBusinessDay(nextExecution))
             {
                 nextExecution = nextExecution.AddDays(1);
             }
@@ -120,7 +127,7 @@ class Scheduler
         {
             nextExecution = nextExecution.AddDays(1);
         }
-        while (!daysOfWeek.Contains((int)nextExecution.DayOfWeek) || (isBusinessDay && IsWeekend(nextExecution)));
+        while (!daysOfWeek.Contains((int)nextExecution.DayOfWeek) || (isBusinessDay && IsBusinessDay(nextExecution)));
 
         return nextExecution;
     }
@@ -136,7 +143,7 @@ class Scheduler
 
         if (isBusinessDay)
         {
-            while (IsWeekend(nextExecution))
+            while (IsBusinessDay(nextExecution))
             {
                 nextExecution = nextExecution.AddDays(1);
             }
@@ -156,7 +163,7 @@ class Scheduler
 
         if (isBusinessDay)
         {
-            while (IsWeekend(nextExecution))
+            while (!IsBusinessDay(nextExecution))
             {
                 nextExecution = nextExecution.AddDays(-1);
             }
@@ -168,6 +175,11 @@ class Scheduler
     private static bool IsWeekend(DateTime date)
     {
         return date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+    }
+
+    private static bool IsBusinessDay(DateTime date)
+    {
+        return !IsWeekend(date) && !holidays.Contains(date.Date);
     }
 }
 
