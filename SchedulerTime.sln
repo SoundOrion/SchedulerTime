@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35728.132 d17.12
+VisualStudioVersion = 17.12.35728.132
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchedulerTime", "SchedulerTime\SchedulerTime.csproj", "{F1409300-43DA-4A05-9562-0E2766B03635}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibrary", "ClassLibrary\ClassLibrary.csproj", "{C7E741ED-58D1-4399-B24E-1C5A5C01B6D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{1BAFB32F-0DCA-4C29-AD0A-87881F0D3B6A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{F1409300-43DA-4A05-9562-0E2766B03635}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1409300-43DA-4A05-9562-0E2766B03635}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1409300-43DA-4A05-9562-0E2766B03635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7E741ED-58D1-4399-B24E-1C5A5C01B6D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7E741ED-58D1-4399-B24E-1C5A5C01B6D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7E741ED-58D1-4399-B24E-1C5A5C01B6D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7E741ED-58D1-4399-B24E-1C5A5C01B6D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BAFB32F-0DCA-4C29-AD0A-87881F0D3B6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BAFB32F-0DCA-4C29-AD0A-87881F0D3B6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BAFB32F-0DCA-4C29-AD0A-87881F0D3B6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BAFB32F-0DCA-4C29-AD0A-87881F0D3B6A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

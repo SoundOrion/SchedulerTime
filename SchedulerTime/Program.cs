@@ -226,7 +226,7 @@ class Program
             "TIMELY|01:00",
             "DAILY|19:30|1",
             "DAILY|17:00|0",
-            "WEEKLY|17:00|1|15",
+            "WEEKLY|17:00|1|156",
             "WEEKLY|17:00|0|0123456",
             "WEEKLY|18:00|0|034",
             "MONTHLY|09:00|0|5",
