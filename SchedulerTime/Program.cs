@@ -48,7 +48,7 @@ class Scheduler
 
         return type switch
         {
-            "MONTHLY" => GetNextMonthlyExecution(now, int.Parse(parts[0]), executionTime, isBusinessDay),
+            "MONTHLY" => GetNextMonthlyExecution(now, int.Parse(parts[2]), executionTime, isBusinessDay),
             "MONTHLY_LAST" => GetNextMonthlyLastExecution(now, executionTime, isBusinessDay),
             "DAILY" => GetNextDailyExecution(now, executionTime, isBusinessDay),
             "WEEKLY" => GetNextWeeklyExecution(now, executionTime, isBusinessDay, ParseWeeklyDays(parts[2])),
@@ -158,16 +158,17 @@ class Program
         Console.WriteLine("WEEKLY カレンダー: " + Scheduler.GetNextExecutionTime("WEEKLY", "18:00|0|034"));
         Console.WriteLine("TIMELY（1時間ごと）: " + Scheduler.GetNextExecutionTime("TIMELY", "01:00"));
         Console.WriteLine("TIMELY（30分ごと）: " + Scheduler.GetNextExecutionTime("TIMELY", "00:30"));
-        Console.WriteLine("MONTHLY（毎月5日 9:00）: " + Scheduler.GetNextExecutionTime("MONTHLY", "5|09:00|0"));
-        Console.WriteLine("MONTHLY（毎月20日 18:00、営業日）: " + Scheduler.GetNextExecutionTime("MONTHLY", "20|18:00|1"));
+        Console.WriteLine("MONTHLY（毎月5日 9:00）: " + Scheduler.GetNextExecutionTime("MONTHLY", "09:00|0|5"));
+        Console.WriteLine("MONTHLY（毎月20日 9:00）: " + Scheduler.GetNextExecutionTime("MONTHLY", "9:00|0|20"));
+        Console.WriteLine("MONTHLY（毎月20日 18:00、営業日）: " + Scheduler.GetNextExecutionTime("MONTHLY", "18:00|1|20"));
         Console.WriteLine("MONTHLY_LAST（毎月末日 23:59）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "23:59|0"));
         Console.WriteLine("MONTHLY_LAST_BIZ（毎月最終営業日 18:00）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "18:00|1"));
-        Console.WriteLine("ONDEMAND: " + Scheduler.GetNextExecutionTime("ONDEMAND", ""));
-        Console.WriteLine("DAILY（営業日）: " + Scheduler.GetNextExecutionTime("DAILY", "19:29|1"));
-        Console.WriteLine("WEEKLY（営業日）: " + Scheduler.GetNextExecutionTime("WEEKLY", "17:00|1|15"));
-        Console.WriteLine("TIMELY（1時間ごと）: " + Scheduler.GetNextExecutionTime("TIMELY", "01:00"));
-        Console.WriteLine("MONTHLY（毎月5日 9:00）: " + Scheduler.GetNextExecutionTime("MONTHLY", "5|09:00|0"));
-        Console.WriteLine("MONTHLY_LAST（毎月末日 23:59）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "23:59|0"));
-        Console.WriteLine("MONTHLY_LAST_BIZ（毎月最終営業日 18:00）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "18:00|1"));
+        //Console.WriteLine("ONDEMAND: " + Scheduler.GetNextExecutionTime("ONDEMAND", ""));
+        //Console.WriteLine("DAILY（営業日）: " + Scheduler.GetNextExecutionTime("DAILY", "19:29|1"));
+        //Console.WriteLine("WEEKLY（営業日）: " + Scheduler.GetNextExecutionTime("WEEKLY", "17:00|1|15"));
+        //Console.WriteLine("TIMELY（1時間ごと）: " + Scheduler.GetNextExecutionTime("TIMELY", "01:00"));
+        //Console.WriteLine("MONTHLY（毎月5日 9:00）: " + Scheduler.GetNextExecutionTime("MONTHLY", "5|09:00|0"));
+        //Console.WriteLine("MONTHLY_LAST（毎月末日 23:59）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "23:59|0"));
+        //Console.WriteLine("MONTHLY_LAST_BIZ（毎月最終営業日 18:00）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "18:00|1"));
     }
 }
