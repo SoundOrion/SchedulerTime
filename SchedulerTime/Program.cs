@@ -102,7 +102,7 @@ class Scheduler
 
         if (isBusinessDay)
         {
-            while (IsBusinessDay(nextExecution))
+            while (!IsBusinessDay(nextExecution))
             {
                 nextExecution = nextExecution.AddDays(1);
             }
@@ -110,7 +110,6 @@ class Scheduler
 
         return nextExecution;
     }
-
 
     private static DateTime GetNextWeeklyExecution(DateTime now, TimeSpan executionTime, bool isBusinessDay, HashSet<int> daysOfWeek)
     {
@@ -127,7 +126,7 @@ class Scheduler
         {
             nextExecution = nextExecution.AddDays(1);
         }
-        while (!daysOfWeek.Contains((int)nextExecution.DayOfWeek) || (isBusinessDay && IsBusinessDay(nextExecution)));
+        while (!daysOfWeek.Contains((int)nextExecution.DayOfWeek) || (isBusinessDay && !IsBusinessDay(nextExecution)));
 
         return nextExecution;
     }
@@ -143,7 +142,7 @@ class Scheduler
 
         if (isBusinessDay)
         {
-            while (IsBusinessDay(nextExecution))
+            while (!IsBusinessDay(nextExecution))
             {
                 nextExecution = nextExecution.AddDays(1);
             }
