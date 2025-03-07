@@ -21,8 +21,10 @@ class Scheduler
         holidays.Value.Add(holiday.Date);
     }
 
-    public static DateTime GetNextExecutionTime(string type, string property)
+    public static DateTime GetNextExecutionTime(string type, string property, string rolldate = "0:00")
     {
+        TimeSpan offset = TimeSpan.Parse(rolldate);
+
         DateTime now = DateTime.Now;
 
         if (type == "ONDEMAND")
@@ -48,10 +50,10 @@ class Scheduler
 
         return type switch
         {
-            "MONTHLY" => GetNextMonthlyExecution(now, int.Parse(parts[2]), executionTime, isBusinessDay),
-            "MONTHLY_LAST" => GetNextMonthlyLastExecution(now, executionTime, isBusinessDay),
-            "DAILY" => GetNextDailyExecution(now, executionTime, isBusinessDay),
-            "WEEKLY" => GetNextWeeklyExecution(now, executionTime, isBusinessDay, ParseWeeklyDays(parts[2])),
+            "MONTHLY" => GetNextMonthlyExecution(now, int.Parse(parts[2]), executionTime, isBusinessDay, offset),
+            "MONTHLY_LAST" => GetNextMonthlyLastExecution(now, executionTime, isBusinessDay, offset),
+            "DAILY" => GetNextDailyExecution(now, executionTime, isBusinessDay, offset),
+            "WEEKLY" => GetNextWeeklyExecution(now, executionTime, isBusinessDay, ParseWeeklyDays(parts[2]), offset),
             _ => throw new ArgumentException($"無効なスケジュールタイプ: {type}")
         };
     }
@@ -61,76 +63,75 @@ class Scheduler
         return now.Add(interval);
     }
 
-    private static DateTime GetNextDailyExecution(DateTime now, TimeSpan executionTime, bool isBusinessDay)
+    private static DateTime GetNextDailyExecution(DateTime now, TimeSpan executionTime, bool isBusinessDay, TimeSpan offset)
     {
         DateTime nextExecution = now.Date.Add(executionTime);
+
         if (now > nextExecution)
             nextExecution = nextExecution.AddDays(1);
 
-        return isBusinessDay ? GetNextBusinessDay(nextExecution) : nextExecution;
+        return isBusinessDay ? GetNextBusinessDay(nextExecution, offset) : nextExecution;
     }
 
-    private static DateTime GetNextWeeklyExecution(DateTime now, TimeSpan executionTime, bool isBusinessDay, HashSet<int> daysOfWeek)
+    private static DateTime GetNextWeeklyExecution(DateTime now, TimeSpan executionTime, bool isBusinessDay, HashSet<int> daysOfWeek, TimeSpan offset)
     {
         DateTime nextExecution = now.Date.Add(executionTime);
-        if (daysOfWeek.Contains((int)now.DayOfWeek) && now <= nextExecution)
-            return nextExecution;
 
-        do
+        while (!daysOfWeek.Contains((int)nextExecution.DayOfWeek) || (isBusinessDay && !IsBusinessDay(nextExecution, offset)))
         {
             nextExecution = nextExecution.AddDays(1);
-        }
-        while (!daysOfWeek.Contains((int)nextExecution.DayOfWeek) || (isBusinessDay && !IsBusinessDay(nextExecution)));
+        };   
 
         return nextExecution;
     }
 
-    private static DateTime GetNextMonthlyExecution(DateTime now, int day, TimeSpan executionTime, bool isBusinessDay)
+    private static DateTime GetNextMonthlyExecution(DateTime now, int day, TimeSpan executionTime, bool isBusinessDay, TimeSpan offset)
     {
         DateTime nextExecution = new DateTime(now.Year, now.Month, Math.Min(day, DateTime.DaysInMonth(now.Year, now.Month))).Add(executionTime);
 
         if (now > nextExecution)
             nextExecution = nextExecution.AddMonths(1);
 
-        return isBusinessDay ? GetNextBusinessDay(nextExecution) : nextExecution;
+        return isBusinessDay ? GetNextBusinessDay(nextExecution, offset) : nextExecution;
     }
 
-    private static DateTime GetNextMonthlyLastExecution(DateTime now, TimeSpan executionTime, bool isBusinessDay)
+    private static DateTime GetNextMonthlyLastExecution(DateTime now, TimeSpan executionTime, bool isBusinessDay, TimeSpan offset)
     {
         DateTime nextExecution = new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month)).Add(executionTime);
 
         if (now > nextExecution)
             nextExecution = new DateTime(now.AddMonths(1).Year, now.AddMonths(1).Month, DateTime.DaysInMonth(now.AddMonths(1).Year, now.AddMonths(1).Month)).Add(executionTime);
 
-        return isBusinessDay ? GetLastBusinessDay(nextExecution) : nextExecution;
+        return isBusinessDay ? GetLastBusinessDay(nextExecution, offset) : nextExecution;
     }
 
-    private static DateTime GetNextBusinessDay(DateTime date)
+    private static DateTime GetNextBusinessDay(DateTime date, TimeSpan offset)
     {
-        do
+        while (!IsBusinessDay(date, offset))
         {
             date = date.AddDays(1);
-        }
-        while (!IsBusinessDay(date));
+        };
 
         return date;
     }
 
-    private static DateTime GetLastBusinessDay(DateTime date)
+    private static DateTime GetLastBusinessDay(DateTime date, TimeSpan offset)
     {
-        do
+        while (!IsBusinessDay(date, offset))
         {
             date = date.AddDays(-1);
-        }
-        while (!IsBusinessDay(date));
-
+        };
+        
         return date;
     }
 
-    private static bool IsBusinessDay(DateTime date) => !IsWeekend(date) && !holidays.Value.Contains(date.Date);
+    private static bool IsBusinessDay(DateTime date, TimeSpan offset)
+    {
+        DateTime adjustedDate = date - offset;
+        return !IsWeekend(adjustedDate) && !holidays.Value.Contains(adjustedDate.Date);
+    }
 
     private static bool IsWeekend(DateTime date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
-
 
     private static HashSet<int> ParseWeeklyDays(string days)
     {
@@ -139,7 +140,6 @@ class Scheduler
 
         return days.Select(c => c - '0').ToHashSet();
     }
-
 
     public static string GenerateDescription(string type, string property)
     {
@@ -208,10 +208,10 @@ class Program
 
         // テストケース
         Console.WriteLine("ONDEMAND: " + Scheduler.GetNextExecutionTime("ONDEMAND", ""));
-        Console.WriteLine("DAILY 営業日: " + Scheduler.GetNextExecutionTime("DAILY", "19:29|1"));
+        Console.WriteLine("DAILY 営業日: " + Scheduler.GetNextExecutionTime("DAILY", "02:29|1"));
         Console.WriteLine("DAILY 営業日: " + Scheduler.GetNextExecutionTime("DAILY", "19:30|1"));
-        Console.WriteLine("DAILY カレンダー: " + Scheduler.GetNextExecutionTime("DAILY", "17:00|0"));
-        Console.WriteLine("WEEKLY 営業日: " + Scheduler.GetNextExecutionTime("WEEKLY", "17:00|1|15"));
+        Console.WriteLine("DAILY カレンダー: " + Scheduler.GetNextExecutionTime("DAILY", "02:29|0"));
+        Console.WriteLine("WEEKLY 営業日: " + Scheduler.GetNextExecutionTime("WEEKLY", "03:00|1|156"));
         Console.WriteLine("WEEKLY カレンダー: " + Scheduler.GetNextExecutionTime("WEEKLY", "18:00|0|034"));
         Console.WriteLine("TIMELY（1時間ごと）: " + Scheduler.GetNextExecutionTime("TIMELY", "01:00"));
         Console.WriteLine("TIMELY（30分ごと）: " + Scheduler.GetNextExecutionTime("TIMELY", "00:30"));
