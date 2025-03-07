@@ -127,15 +127,10 @@ class Scheduler
         return date;
     }
 
-    private static bool IsBusinessDay(DateTime date)
-    {
-        return !IsWeekend(date) && !holidays.Value.Contains(date.Date);
-    }
+    private static bool IsBusinessDay(DateTime date) => !IsWeekend(date) && !holidays.Value.Contains(date.Date);
 
-    private static bool IsWeekend(DateTime date)
-    {
-        return date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
-    }
+    private static bool IsWeekend(DateTime date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
 
     private static HashSet<int> ParseWeeklyDays(string days)
     {
