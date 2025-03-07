@@ -4,12 +4,18 @@ using System.Linq;
 
 class Scheduler
 {
-    private static readonly HashSet<DateTime> holidays = new HashSet<DateTime>
+    private static readonly HashSet<DateTime> holidays = new HashSet<DateTime>();
+
+    static Scheduler()
     {
-        new DateTime(DateTime.Now.Year, 1, 1),  // 元旦
-        new DateTime(DateTime.Now.Year, 12, 25) // クリスマス
-        // 会社の定休日を追加可能
-    };
+        // 固定の休日を追加
+        for (int year = DateTime.Now.Year; year <= DateTime.Now.Year + 5; year++)
+        {
+            holidays.Add(new DateTime(year, 1, 1));  // 元旦
+            holidays.Add(new DateTime(year, 12, 25)); // クリスマス
+            // 他の祝日もここに追加可能
+        }
+    }
 
     public static DateTime GetNextExecutionTime(string type, string property)
     {
@@ -50,7 +56,6 @@ class Scheduler
             {
                 throw new ArgumentException($"不正な日付: {parts[0]}");
             }
-
             return GetNextMonthlyExecution(now, day, executionTime, isBusinessDay);
         }
 
@@ -73,7 +78,6 @@ class Scheduler
                 .Select(day => day.Value)
                 .ToHashSet();
 
-            // 不正な値がある場合に例外をスロー
             if (daysOfWeek.Count != parts[2].Length)
             {
                 throw new ArgumentException($"不正な曜日情報: {parts[2]}");
@@ -87,8 +91,7 @@ class Scheduler
 
     private static DateTime GetNextTimelyExecution(DateTime now, TimeSpan interval)
     {
-        DateTime nextExecution = now.Add(interval);
-        return nextExecution;
+        return now.Add(interval);
     }
 
     private static DateTime GetNextDailyExecution(DateTime now, TimeSpan executionTime, bool isBusinessDay)
@@ -157,7 +160,8 @@ class Scheduler
 
         if (now > nextExecution)
         {
-            nextExecution = new DateTime(now.Year, now.Month + 1, DateTime.DaysInMonth(now.Year, now.Month + 1)).Add(executionTime);
+            DateTime nextMonth = now.AddMonths(1);
+            nextExecution = new DateTime(nextMonth.Year, nextMonth.Month, DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month)).Add(executionTime);
         }
 
         if (isBusinessDay)
