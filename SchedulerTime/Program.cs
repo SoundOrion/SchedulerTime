@@ -139,6 +139,63 @@ class Scheduler
 
         return days.Select(c => c - '0').ToHashSet();
     }
+
+
+    public static string GenerateDescription(string type, string property)
+    {
+        string[] parts = property.Split('|');
+
+        if (type == "ONDEMAND")
+            return "即時実行";
+
+        if (type == "TIMELY")
+        {
+            if (!TimeSpan.TryParse(parts[0], out TimeSpan interval))
+                throw new ArgumentException($"[エラー] 不正な間隔フォーマット: {property}");
+            return $"指定間隔ごとに実行 ({interval.Hours}時間{interval.Minutes}分)";
+        }
+
+        if (parts.Length < 2)
+            throw new ArgumentException($"[エラー] 不正なフォーマット: {property}");
+
+        bool isBusinessDay = parts[1] == "1";
+        string businessDayText = isBusinessDay ? " (営業日)" : " (カレンダー日)";
+
+        if (!TimeSpan.TryParse(parts[0], out TimeSpan executionTime))
+            throw new ArgumentException($"[エラー] 不正な時間フォーマット: {parts[0]}");
+
+        string timeString = $"{executionTime.Hours:D2}:{executionTime.Minutes:D2}";
+
+        return type switch
+        {
+            "DAILY" => $"毎日 {timeString} に実行{businessDayText}",
+            "WEEKLY" => GenerateWeeklyDescription(timeString, parts, isBusinessDay),
+            "MONTHLY" => GenerateMonthlyDescription(timeString, parts, isBusinessDay),
+            "MONTHLY_LAST" => $"毎月最終日 {timeString} に実行{businessDayText}",
+            _ => throw new ArgumentException($"[エラー] 無効なスケジュールタイプ: {type}")
+        };
+    }
+
+    // 週次スケジュールの説明を生成
+    private static string GenerateWeeklyDescription(string timeString, string[] parts, bool isBusinessDay)
+    {
+        HashSet<int> daysOfWeek = ParseWeeklyDays(parts[2]);
+        string businessDayText = isBusinessDay ? " (営業日)" : " (カレンダー日)";
+        string[] weekDays = { "日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日" };
+        string dayList = string.Join(", ", daysOfWeek.Select(d => weekDays[d]));
+        return $"毎週 {dayList} の {timeString} に実行{businessDayText}";
+    }
+
+    // 月次スケジュールの説明を生成
+    private static string GenerateMonthlyDescription(string timeString, string[] parts, bool isBusinessDay)
+    {
+        if (!int.TryParse(parts[2], out int day) || day < 1 || day > 31)
+            throw new ArgumentException($"[エラー] 不正な日付: {parts[2]}");
+
+        string businessDayText = isBusinessDay ? " (営業日)" : " (カレンダー日)";
+        return $"毎月 {day}日 {timeString} に実行{businessDayText}";
+    }
+
 }
 
 class Program
@@ -163,12 +220,31 @@ class Program
         Console.WriteLine("MONTHLY（毎月20日 18:00、営業日）: " + Scheduler.GetNextExecutionTime("MONTHLY", "18:00|1|20"));
         Console.WriteLine("MONTHLY_LAST（毎月末日 23:59）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "23:59|0"));
         Console.WriteLine("MONTHLY_LAST_BIZ（毎月最終営業日 18:00）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "18:00|1"));
-        //Console.WriteLine("ONDEMAND: " + Scheduler.GetNextExecutionTime("ONDEMAND", ""));
-        //Console.WriteLine("DAILY（営業日）: " + Scheduler.GetNextExecutionTime("DAILY", "19:29|1"));
-        //Console.WriteLine("WEEKLY（営業日）: " + Scheduler.GetNextExecutionTime("WEEKLY", "17:00|1|15"));
-        //Console.WriteLine("TIMELY（1時間ごと）: " + Scheduler.GetNextExecutionTime("TIMELY", "01:00"));
-        //Console.WriteLine("MONTHLY（毎月5日 9:00）: " + Scheduler.GetNextExecutionTime("MONTHLY", "5|09:00|0"));
-        //Console.WriteLine("MONTHLY_LAST（毎月末日 23:59）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "23:59|0"));
-        //Console.WriteLine("MONTHLY_LAST_BIZ（毎月最終営業日 18:00）: " + Scheduler.GetNextExecutionTime("MONTHLY_LAST", "18:00|1"));
+
+        string[] testCases = {
+            "ONDEMAND|",
+            "TIMELY|01:00",
+            "DAILY|19:30|1",
+            "DAILY|17:00|0",
+            "WEEKLY|17:00|1|15",
+            "WEEKLY|17:00|0|0123456",
+            "WEEKLY|18:00|0|034",
+            "MONTHLY|09:00|0|5",
+            "MONTHLY|09:00|0|20",
+            "MONTHLY|18:00|1|20",
+            "MONTHLY_LAST|23:59|0",
+            "MONTHLY_LAST|18:00|1"
+        };
+
+        foreach (string testCase in testCases)
+        {
+            string[] parts = testCase.Split('|', 2);
+            string type = parts[0];
+            string property = parts.Length > 1 ? parts[1] : "";
+
+            Console.WriteLine($"スケジュール: {testCase}");
+            Console.WriteLine($"説明: {Scheduler.GenerateDescription(type, property)}");
+            Console.WriteLine();
+        }
     }
 }
