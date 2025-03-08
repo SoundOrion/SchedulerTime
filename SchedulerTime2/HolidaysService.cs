@@ -93,6 +93,15 @@ public class HolidaysService : IHostedService, IHolidaysProvider
             command.CommandText = query;
 
             // 非同期にデータ取得
+            // DbConnection の場合は OpenAsync を使う
+            if (_dbConnection is DbConnection dbConn && dbConn.State != ConnectionState.Open)
+            {
+                await dbConn.OpenAsync().ConfigureAwait(false);
+            }
+            else if (_dbConnection.State != ConnectionState.Open)
+            {
+                _dbConnection.Open(); // 非同期が使えない場合は同期メソッドを使用
+            }
             using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
             await foreach (var holiday in ReadHolidaysAsync(reader))
             {
