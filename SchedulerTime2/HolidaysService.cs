@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -68,4 +70,60 @@ public class HolidaysService : IHostedService, IHolidaysProvider
         _timer?.Change(Timeout.Infinite, 0);
         return Task.CompletedTask;
     }
+
+
+
+    private async Task LoadHolidaysFromDatabaseAsync(object? state)
+    {
+        try
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var holidaySet = new SortedSet<DateTime>();
+
+            const string query = "SELECT HolidayDate FROM Holidays";
+
+            // DbCommand を使用する
+            using var command = _dbConnection.CreateCommand() as DbCommand;
+            if (command is null)
+            {
+                _logger.LogError("データベースコマンドの作成に失敗しました");
+                return;
+            }
+
+            command.CommandText = query;
+
+            // 非同期にデータ取得
+            using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+            await foreach (var holiday in ReadHolidaysAsync(reader))
+            {
+                holidaySet.Add(holiday);
+            }
+
+            _holidays = holidaySet;
+            stopwatch.Stop();
+
+            _logger.LogInformation("祝日データを更新しました: {Count}件 (処理時間: {Elapsed}ms)", _holidays.Count, stopwatch.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "祝日データの取得に失敗しました");
+        }
+    }
+
+    private async IAsyncEnumerable<DateTime> ReadHolidaysAsync(DbDataReader reader)
+    {
+        while (await reader.ReadAsync().ConfigureAwait(false))
+        {
+            if (reader["HolidayDate"] is DateTime holiday)
+            {
+                yield return holiday;
+            }
+            else if (DateTime.TryParse(reader["HolidayDate"]?.ToString(), out var parsedHoliday))
+            {
+                yield return parsedHoliday;
+            }
+        }
+    }
+
+
 }
