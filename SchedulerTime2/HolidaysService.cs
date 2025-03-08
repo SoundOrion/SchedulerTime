@@ -102,7 +102,12 @@ public class HolidaysService : IHostedService, IHolidaysProvider
             {
                 _dbConnection.Open(); // 非同期が使えない場合は同期メソッドを使用
             }
-            using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+
+            //using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+
+            // `SequentialAccess` を使ってデータ取得を最適化
+            using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess).ConfigureAwait(false);
+
             await foreach (var holiday in ReadHolidaysAsync(reader))
             {
                 holidaySet.Add(holiday);
@@ -134,5 +139,12 @@ public class HolidaysService : IHostedService, IHolidaysProvider
         }
     }
 
-
+    //private async IAsyncEnumerable<DateTime> ReadHolidaysAsync(DbDataReader reader)
+    //{
+    //    while (await reader.ReadAsync().ConfigureAwait(false))
+    //    {
+    //        // `GetDateTime(0)` を使い型変換を最小限に
+    //        yield return reader.GetDateTime(0);
+    //    }
+    //}
 }
