@@ -4,23 +4,13 @@ namespace ClassLibrary;
 
 public class Scheduler
 {
-    private readonly Lazy<SortedSet<DateTime>> holidays = new Lazy<SortedSet<DateTime>>(() =>
-    {
-        var holidaySet = new SortedSet<DateTime>();
-        for (int year = DateTime.Now.Year; year <= DateTime.Now.Year + 5; year++)
-        {
-            holidaySet.Add(new DateTime(year, 1, 1));
-            holidaySet.Add(new DateTime(year, 3, 20));
-            holidaySet.Add(new DateTime(year, 12, 25));
-        }
-        return holidaySet;
-    });
-
+    private readonly Lazy<SortedSet<DateTime>> holidays;
     private readonly DateTime _baseDate;
 
-    public Scheduler(DateTime baseDate)
+    public Scheduler(DateTime baseDate, IHolidaysProvider holidaysProvider)
     {
         _baseDate = baseDate;
+        holidays = new Lazy<SortedSet<DateTime>>(holidaysProvider.GetHolidays);
     }
 
     public DateTime GetNextExecutionTime(string type, string property, string rolldate)
