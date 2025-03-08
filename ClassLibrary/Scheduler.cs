@@ -5,17 +5,15 @@ namespace ClassLibrary;
 public class Scheduler
 {
     private readonly Lazy<SortedSet<DateTime>> holidays;
-    private readonly DateTime _baseDate;
 
-    public Scheduler(DateTime baseDate, IHolidaysProvider holidaysProvider)
+    public Scheduler(IHolidaysProvider holidaysProvider)
     {
-        _baseDate = baseDate;
         holidays = new Lazy<SortedSet<DateTime>>(holidaysProvider.GetHolidays);
     }
 
-    public DateTime GetNextExecutionTime(string type, string property, string rolldate)
+    public DateTime GetNextExecutionTime(DateTime baseDate, string type, string property, string rolldate)
     {
-        DateTime now = _baseDate;
+        DateTime now = baseDate;
 
         if (type == "ONDEMAND")
             return now; // 即時実行
